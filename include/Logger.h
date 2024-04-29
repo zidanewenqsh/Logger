@@ -2,11 +2,26 @@
 // Created by wen on 2023-12-30.
 //
 
-#ifndef MEMORYPOOL_LOGGER_H
-#define MEMORYPOOL_LOGGER_H
+#ifndef _LOGGER_H
+#define _LOGGER_H
 // Logger.h
-//#ifndef LOGGER_H
-//#define LOGGER_H
+
+
+#if defined(_WIN32) || defined(_WIN64)
+    // Windows platform
+    #ifdef THREADPOOL_EXPORTS
+        #define THREADPOOL_API __declspec(dllexport)
+    #else
+        #define THREADPOOL_API __declspec(dllimport)
+    #endif
+#else
+    // not Windows platform, assume Unix-like platform（e.g. Linux）
+    #if __GNUC__ >= 4
+        #define THREADPOOL_API __attribute__ ((visibility ("default")))
+    #else
+        #define THREADPOOL_API
+    #endif
+#endif
 
 #include <iostream>
 #include <fstream>
@@ -24,7 +39,7 @@ enum class LogLevel {
     FATAL
 };
 
-class Logger {
+class THREADPOOL_API Logger {
 public:
 //    Logger();
     explicit Logger(LogLevel level = LogLevel::INFO);
@@ -87,7 +102,7 @@ private:
     std::ostream* out_stream;
     std::mutex mu;
     LogLevel level;
-    // ANSI颜色代码
+    // ANSI color codes
     const std::string RESET = "\033[0m";
     const std::string RED = "\033[31m";     // ERROR
     const std::string GREEN = "\033[32m";   // INFO
@@ -98,7 +113,7 @@ private:
 };
 
 //#define LOG(logger, level, message) logger.Log(message, level, __FILE__, __LINE__, __FUNCTION__)
-// 通用的LOG宏定义
+// Generic LOG macro definition
 #define LOG(logger, level, message) logger.Log(message, level, __FILE__, __LINE__, __FUNCTION__)
 
 #define LOG_DEBUG(format, ...) this->LogDebug(__FILE__, __LINE__, __FUNCTION__, format, ##__VA_ARGS__)
@@ -107,7 +122,7 @@ private:
 #define LOG_ERROR(format, ...) this->LogError(__FILE__, __LINE__, __FUNCTION__, format, ##__VA_ARGS__)
 #define LOG_FATAL(format, ...) this->LogFatal(__FILE__, __LINE__, __FUNCTION__, format, ##__VA_ARGS__)
 
-// 基于通用LOG宏定义的特定级别宏
+// Specific level macros based on generic LOG macro definition
 //#define LOG_INFO(logger, message) LOG(logger, LogLevel::INFO, message)
 //#define LOG_WARNING(logger, message) LOG(logger, LogLevel::WARNING, message)
 //#define LOG_ERROR(logger, message) LOG(logger, LogLevel::ERROR, message)
@@ -126,6 +141,5 @@ private:
 #define LOGWARNING(format, ...) logger.Log(LogLevel::WARNING, __FILE__, __LINE__, __FUNCTION__, format, ##__VA_ARGS__)
 #define LOGERROR(format, ...) logger.Log(LogLevel::ERROR, __FILE__, __LINE__, __FUNCTION__, format, ##__VA_ARGS__)
 #define LOGFATAL(format, ...) logger.Log(LogLevel::FATAL, __FILE__, __LINE__, __FUNCTION__, format, ##__VA_ARGS__)
-// ... [其他宏定义]
 
 #endif //MEMORYPOOL_LOGGER_H
